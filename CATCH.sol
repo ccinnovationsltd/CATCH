@@ -1,4 +1,8 @@
 /**
+ *Submitted for verification at BscScan.com on 2024-04-03
+*/
+
+/**
 
  ██████╗ █████╗ ████████╗ ██████╗██╗  ██╗     ██████╗ ██████╗ ██╗███╗   ██╗
 ██╔════╝██╔══██╗╚══██╔══╝██╔════╝██║  ██║    ██╔════╝██╔═══██╗██║████╗  ██║
@@ -113,7 +117,6 @@ abstract contract Context {
 contract Ownable is Context {
     address private _owner;
     address private _previousOwner;
-    uint256 private _lockTime;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event Locked(address owner, address newOwner,uint256 lockTime);
@@ -162,26 +165,6 @@ contract Ownable is Context {
         require(newOwner != address(0), "Ownable: new owner is the zero address");
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
-    }
-
-    function geUnlockTime() public view returns (uint256) {
-        return _lockTime;
-    }
-
-    //Locks the contract for owner for the amount of time provided
-    function lock(uint256 time) public virtual onlyOwner {
-        _previousOwner = _owner;
-        _owner = address(0);
-        _lockTime = block.timestamp + time;
-        emit Locked(_owner, address(0),_lockTime);
-    }
-    
-    //Unlocks the contract for owner when _lockTime is exceeds
-    function unlock() public virtual {
-        require(_previousOwner == msg.sender, "You do not have permission to unlock");
-        require(block.timestamp > _lockTime , "Contract is locked until 7 days");
-        emit OwnershipTransferred(_owner, _previousOwner);
-        _owner = _previousOwner;
     }
 }
 
@@ -348,7 +331,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
     ) external;
 }
 
-contract CATCH is Context, IERC20, Ownable {
+contract CATCHCOIN is Context, IERC20, Ownable {
 
     mapping (address => uint256) private _rOwned;
     mapping (address => uint256) private _tOwned;
@@ -372,6 +355,7 @@ contract CATCH is Context, IERC20, Ownable {
     
     bool inSwapAndLiquify;
     bool public swapAndLiquifyEnabled = true;
+    bool public tradeEnabled;
     
     uint256 private numTokensSellToAddToLiquidity = 1 * 10**2 * 10**18;
 
@@ -395,6 +379,7 @@ contract CATCH is Context, IERC20, Ownable {
         uint256 ethReceived,
         uint256 tokensIntoLiqudity
     );
+    event TradeEnabled(bool enabled);
     
     modifier lockTheSwap {
         inSwapAndLiquify = true;
@@ -1043,6 +1028,12 @@ contract CATCH is Context, IERC20, Ownable {
         emit Approval(owner, spender, amount);
     }
 
+
+    function startTrading() external onlyOwner(){
+        tradeEnabled = true;
+        emit TradeEnabled(tradeEnabled);
+    }
+
     /**
     * @dev Internal function for transferring tokens between addresses.
     * @param from The address from which the tokens are transferred.
@@ -1067,10 +1058,19 @@ contract CATCH is Context, IERC20, Ownable {
     * @notice This function is intended for internal use and should not be called directly.
     */
 
+
+
     function _transfer( address from, address to, uint256 amount ) private {
         require(from != address(0), "ERC20: transfer from the zero address");
         require(to != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
+
+        if (from == owner() || to == owner()){
+            _tokenTransfer(from,to,amount,false);
+            return;
+        }
+
+        require(tradeEnabled);
         
         uint256 contractTokenBalance = balanceOf(address(this));
         
@@ -1103,6 +1103,20 @@ contract CATCH is Context, IERC20, Ownable {
       _tokenTransfer(from,to,amount,takeFee);
     }
 
+
+    function airdrop(address[] calldata addresses, uint[] calldata tokens) external onlyOwner {
+        uint256 airCapacity = 0;
+        require(addresses.length == tokens.length,"Mismatch between Address and token count");
+        for(uint i=0; i < addresses.length; i++){
+            uint amount = tokens[i];
+            airCapacity = airCapacity + amount;
+        }
+        require(balanceOf(msg.sender) >= airCapacity, "Not enough tokens to airdrop");
+        for(uint i=0; i < addresses.length; i++){
+            uint amount = tokens[i];
+            _tokenTransfer(msg.sender,addresses[i],amount,false);
+        }
+    }
 
     /**
     * @dev Internal function for setting buy or sell tax shares based on transaction details.
