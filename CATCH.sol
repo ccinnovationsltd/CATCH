@@ -1,8 +1,8 @@
 /**
- *Submitted for verification at BscScan.com on 2024-04-03
+ *Submitted for verification at basescan.org on 2024-04-22
 */
 
-/**
+/*
 
  ██████╗ █████╗ ████████╗ ██████╗██╗  ██╗     ██████╗ ██████╗ ██╗███╗   ██╗
 ██╔════╝██╔══██╗╚══██╔══╝██╔════╝██║  ██║    ██╔════╝██╔═══██╗██║████╗  ██║
@@ -11,9 +11,34 @@
 ╚██████╗██║  ██║   ██║   ╚██████╗██║  ██║    ╚██████╗╚██████╔╝██║██║ ╚████║
  ╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝     ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝
                                                                            
-*/
 
-// SPDX-License-Identifier: Unlicensed
+============================================================================
+                                PROJECT DETAILS
+============================================================================
+catchcoin™ Inc. is a game-changer in business traffic generation. Our cutting-edge blockchain app drives foot traffic, offers time-sensitive deals, and bridges traditional commerce with cryptocurrency. 
+Using stable coins and catchcoin™ as an BEP-20 token, we attract a diverse customer base. Our user-friendly iOS and Android app simplifies token accumulation and NFC payments, making online and offline shopping flexible.
+We pioneer the integration of traditional commerce and cryptocurrency to engage customers and boost foot traffic. catchcoin™, a gamified app, enhances customer loyalty using 🎮 Augmented Reality and Geo-location. 
+It boosts foot traffic, especially during off-peak times, offering time-sensitive offers and transforming loyalty into an interactive adventure. 🌟 Join the catchcoin™ revolution for engaging and rewarding loyalty management.
+
+Website: https://www.catchcoin.com
+
+Social media:
+https://www.youtube.com/@catchcoinofficial
+https://www.facebook.com/catchcoin
+https://www.linkedin.com/company/catchcoin
+https://t.me/catchcoinofficial
+https://t.me/catchcoindiscussion
+https://www.twitter.com/catchcoinAR
+https://www.twitter.com/catchcoinMETA
+https://medium.com/@catchcoin
+https://discord.gg/TTrZeQ6hBN
+https://www.instagram.com/catchcoinofficial
+https://github.com/catchcoinofficial
+https://www.reddit.com/r/catchcoin
+https://www.tiktok.com/@catchcoinofficial
+
+SPDX-License-Identifier: Unlicensed
+*/
 pragma solidity 0.8.19;
 
 interface IERC20 {
@@ -350,6 +375,9 @@ contract CATCHCOIN is Context, IERC20, Ownable {
     string  private  constant SYMBOL = "CATCH";
     uint8  private constant DECIMALS = 18;
 
+    //Starting 1st hr 
+    uint256 private startingHr;
+
     IUniswapV2Router02 public immutable uniswapV2Router;
     address public immutable uniswapV2Pair;
     
@@ -397,7 +425,8 @@ contract CATCHCOIN is Context, IERC20, Ownable {
         require(_fundWallet != address(0),"Fund wallet can not be zero");
         _rOwned[_msgSender()] = _rTotal;
         fundWallet = _fundWallet;
-        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x10ED43C718714eb63d5aA57B78B54704E256024E); //BNB Smart Chain Mainnet
+        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24); //Uniswap V2 on Base network
+
          // Create a uniswap pair for this new token
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
             .createPair(address(this), _uniswapV2Router.WETH());
@@ -408,6 +437,9 @@ contract CATCHCOIN is Context, IERC20, Ownable {
         //exclude owner and this contract from fee
         _isExcludedFromFee[owner()] = true;
         _isExcludedFromFee[address(this)] = true;
+
+        //set starting 1hr time
+        startingHr = block.timestamp +  4 hours;
         
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
@@ -1096,13 +1128,29 @@ contract CATCHCOIN is Context, IERC20, Ownable {
         
         //if takeFee is true then set set or buy tax share percentage
         if(takeFee)
-        _sellBuyTax(from,to);
+       {
+            //if user want to buy token under 1 hour from contract deployment
+            if(startingHr >= block.timestamp){
+                bool isBuy = from == uniswapV2Pair;
+                bool isSell = to == uniswapV2Pair;
+
+                if(isBuy){
+                    uint256 taxAmount = amount / 2;
+                    amount -=taxAmount;
+                    _tokenTransfer(from,address(this),taxAmount,false);
+                }
+                else if(isSell){
+                    _sellBuyTax(from,to);
+                }
+            }else{
+                  _sellBuyTax(from,to);
+            }  
+       }
         //transfer amount, it will take tax, burn, liquidity fee
         
 
       _tokenTransfer(from,to,amount,takeFee);
     }
-
 
     function airdrop(address[] calldata addresses, uint[] calldata tokens) external onlyOwner {
         uint256 airCapacity = 0;
@@ -1165,7 +1213,7 @@ contract CATCHCOIN is Context, IERC20, Ownable {
             }
     } 
 
-
+    
     /**
     * @dev Private function for performing token swap and liquidity addition on the Uniswap V2 router.
     * @param contractTokenBalance The balance of tokens in the contract to be used for the swap and liquidity.
@@ -1308,7 +1356,6 @@ contract CATCHCOIN is Context, IERC20, Ownable {
         _takeCoinFund(tCoinOperation);
         emit Transfer(sender, recipient, tTransferAmount);
     }
-
 
     /**
     * @dev Internal function for transferring tokens from a non-excluded address to an excluded address.
