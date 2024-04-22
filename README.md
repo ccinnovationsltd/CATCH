@@ -11,7 +11,7 @@ info@catchcoin.com
 - YouTube: [catchcoin YouTube Channel] (https://www.youtube.com/@catchcoinofficial)
 - Facebook: [catchcoin Facebook Page] (https://www.facebook.com/catchcoin)
 - LinkedIn: [catchcoin LinkedIn Profile] (https://www.linkedin.com/company/catchcoin)
-- Telegram: [catchcoin Official Telegram] (https://www.t.me/catchcoinofficial)
+- Telegram: [catchcoin Official Telegram] (https://t.me/catchcoindiscussion)
 - Twitter (AR): [catchcoin Twitter - AR] (https://www.twitter.com/catchcoinAR)
 - Twitter (META): [catchcoin Twitter - META] (https://www.twitter.com/catchcoinMETA)
 - Medium: [catchcoin on Medium] (https://medium.com/@catchcoin)
